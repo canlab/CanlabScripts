@@ -10,14 +10,15 @@
 
 import subprocess
 
-nJobs = 3
+nJobs = 20
 nBoot = 250 
 algorithm = 'cv_svm'
-filein = 'PTSD_CsplusVCsminus_Ext_Data_bootstrap.mat'
-fileout = 'CS+vsCS-_Ext_PtvCtl_boostrap'
-rPath = '/projects/luch0518/software'
-fPath = '/work/wagerlab/labdata/current/Yuval_Luke/Analyses'
-cPath = '/projects/luch0518/ClusterJobs'
+filein = 'PTSD_CsplusVCsminus_Ext_Data_bootstrap.mat' #Name of data file needs to be .mat with a fmri_data() obj called data with data.Y indicating training labels.
+fileout = 'CS+vsCS-_Ext_PtvCtl_boostrap' #Name of Output file
+rPath = '/projects/luch0518/software' #path to software libraries can be the same for everyone
+fPath = '/work/wagerlab/labdata/current/Yuval_Luke/Analyses' #Location of data
+cPath = '/projects/luch0518/ClusterJobs' #Folder where you will write your job output and scripts.
+email = 'luke.chang@colorado.edu' #Your email address for notification of job completion
 		
 for i in range(1,nJobs+1):
 	#Create Qsub call	

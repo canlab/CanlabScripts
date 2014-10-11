@@ -13,12 +13,12 @@
 
 import subprocess
 
-nJobs = 20 
-filein = 'CS+vsCS-_Ext_PtvCtl_boostrap'
-rPath = '/projects/luch0518/software'
-fPath = '/work/wagerlab/labdata/current/Yuval_Luke/Analyses'
-cPath = '/projects/luch0518/ClusterJobs'
-email = 'luke.chang@colorado.edu'
+nJobs = 20 #number of jobs specified in previous script
+filein = 'CS+vsCS-_Ext_PtvCtl_boostrap' #Name of file output used in previous script
+rPath = '/projects/luch0518/software' #Path to software libraries
+fPath = '/work/wagerlab/labdata/current/Yuval_Luke/Analyses' #Path to Data
+cPath = '/projects/luch0518/ClusterJobs' #Path to folder with cluster output
+email = 'luke.chang@colorado.edu' #Email Address.
 
 #Create Qsub call	
 qsub_call = 'qsub -q blanca-ics -l nodes=1:ppn=1 -m e -M  ' + email + ' -o ' + cPath + '/Collate_Bootstrap_output.txt -e ' + cPath + '/Collate_Bootstrap_error.txt'
