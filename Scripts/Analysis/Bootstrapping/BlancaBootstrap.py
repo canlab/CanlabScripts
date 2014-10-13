@@ -12,7 +12,7 @@ import subprocess
 
 nJobs = 20
 nBoot = 250 
-algorithm = 'cv_svm'
+algorithm = 'cv_svm' #algorithm name for predict function
 filein = 'PTSD_CsplusVCsminus_Ext_Data_bootstrap.mat' #Name of data file needs to be .mat with a fmri_data() obj called data with data.Y indicating training labels.
 fileout = 'CS+vsCS-_Ext_PtvCtl_boostrap' #Name of Output file
 rPath = '/projects/luch0518/software' #path to software libraries can be the same for everyone
@@ -21,8 +21,8 @@ cPath = '/projects/luch0518/ClusterJobs' #Folder where you will write your job o
 email = 'luke.chang@colorado.edu' #Your email address for notification of job completion
 		
 for i in range(1,nJobs+1):
-	#Create Qsub call	
-	qsub_call = 'qsub -q blanca-ics -l nodes=1:ppn=1 -m e -M  ' + email + ' -o ' + cPath + '/ClusterJobs/bootstrap_' + str(i) + '_output.txt -e ' + cPath + '/ClusterJobs/bootstrap_' + str(i) + '_error.txt'
+	#Create Qsub call
+	qsub_call = 'qsub -q blanca-ics -l nodes=1:ppn=1 -m e -M  ' + email + ' -o ' + cPath + '/bootstrap_' + str(i) + '_output.txt -e ' + cPath + '/bootstrap_' + str(i) + '_error.txt'
 	
 	#Create matlab script
 	matlab_script = '/curc/tools/x_86_64/rh6/matlab/matlab-2014a/bin/matlab -r \"rPath = \'' + rPath + '\';addpath(genpath(fullfile(rPath,\'Repository\',\'trunk\')));addpath(genpath(fullfile(rPath,\'lasso\')));addpath(genpath(fullfile(rPath,\'spider\')));addpath(genpath(fullfile(rPath,\'spm8_r5236\'))); fPath = \'' + fPath + '\';load(fullfile(fPath,\'' + filein + '\'));[cverr, stats, optout] = predict(data, \'algorithm_name\', \'' + algorithm  + '\', \'nfolds\', 1, \'bootweights\',\'bootsamples\',' + str(nBoot) + ', \'savebootweights\');save(fullfile(fPath,\'' + fileout + '_' + str(i) + '.mat\'),\'stats\',\'-v7.3\');quit;\" -nodisplay -nosplash -nodesktop'
