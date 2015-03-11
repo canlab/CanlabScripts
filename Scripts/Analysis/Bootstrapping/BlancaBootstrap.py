@@ -27,7 +27,7 @@ for i in range(1,nJobs+1):
 	qsub_call = 'sbatch -A UCB00000358 --qos=blanca-ics -N 1 --ntasks-per-node=' + str(nCores) + ' --mail-type=end --mail-user=' + email + ' --output ' + cPath + '/bootstrap_n' + str(i) + '_output.txt -e ' + cPath + '/bootstrap_n' + str(i) + '_error.txt'
 
 	#Create matlab script
-	matlab_script = '/curc/tools/x_86_64/rh6/matlab/matlab-2014b/bin/matlab -r \"rPath = \'' + rPath + '\';addpath(genpath(fullfile(rPath,\'CanlabCore\',\'CanlabCore\')));addpath(genpath(fullfile(rPath,\'lasso\')));addpath(genpath(fullfile(rPath,\'spider\')));addpath(genpath(fullfile(rPath,\'spm8_r5236\'))); fPath = \'' + fPath + '\';load(fullfile(fPath,\'' + filein + '\'));[cverr, stats, optout] = predict(data, \'algorithm_name\', \'' + algorithm  + '\', \'nfolds\', 1, \'bootweights\',\'bootsamples\',' + str(nBoot) + ', \'savebootweights\');save(fullfile(fPath,\'' + fileout + '_' + str(i) + '.mat\'),\'stats\',\'-v7.3\');quit;\" -nodisplay -nosplash -nodesktop'
+	matlab_script = '#!/bin/bash\n\n/curc/tools/x_86_64/rh6/matlab/matlab-2014b/bin/matlab -r \"rPath = \'' + rPath + '\';addpath(genpath(fullfile(rPath,\'CanlabCore\',\'CanlabCore\')));addpath(genpath(fullfile(rPath,\'lasso\')));addpath(genpath(fullfile(rPath,\'spider\')));addpath(genpath(fullfile(rPath,\'spm8_r5236\'))); fPath = \'' + fPath + '\';load(fullfile(fPath,\'' + filein + '\'));[cverr, stats, optout] = predict(data, \'algorithm_name\', \'' + algorithm  + '\', \'nfolds\', 1, \'bootweights\',\'bootsamples\',' + str(nBoot) + ', \'savebootweights\');save(fullfile(fPath,\'' + fileout + '_' + str(i) + '.mat\'),\'stats\',\'-v7.3\');quit;\" -nodisplay -nosplash -nodesktop'
 	
 	#write matlab bash script to file
 	with open( cPath + '/boot_' + str(i) + '.sh', "w") as text_file:
