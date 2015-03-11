@@ -14,14 +14,16 @@
 import subprocess
 
 nJobs = 20 #number of jobs specified in previous script
-filein = 'CS+vsCS-_Ext_PtvCtl_boostrap' #Name of file output used in previous script
+nCores = 1 #Number of cores to request for each job
+filein = 'SVM_Reg_vs_Neg_boostrap_trialmean' #Name of file output used in previous script
 rPath = '/projects/luch0518/software' #Path to software libraries
-fPath = '/work/wagerlab/labdata/current/Yuval_Luke/Analyses' #Path to Data
+fPath = '/work/wagerlab/labdata/current/Gianaros_Luke/Data' #Path to Data
 cPath = '/projects/luch0518/ClusterJobs' #Path to folder with cluster output
 email = 'luke.chang@colorado.edu' #Email Address.
 
 #Create Qsub call	
-qsub_call = 'qsub -q blanca-ics -l nodes=1:ppn=1 -m e -M  ' + email + ' -o ' + cPath + '/Collate_Bootstrap_output.txt -e ' + cPath + '/Collate_Bootstrap_error.txt'
+# qsub_call = 'qsub -q blanca-ics -l nodes=1:ppn=1 -m e -M  ' + email + ' -o ' + cPath + '/Collate_Bootstrap_output.txt -e ' + cPath + '/Collate_Bootstrap_error.txt'
+qsub_call = 'sbatch -A UCB00000358 --qos=blanca-ics -N 1 --ntasks-per-node=' + str(nCores) + ' --mail-type=end --mail-user=' + email + ' --output ' + cPath + '/Collate_Bootstrap_output.txt -e ' + cPath + '/Collate_Bootstrap_error.txt'
 	
 #Create matlab script
 matlab_script = '/curc/tools/x_86_64/rh6/matlab/matlab-2014a/bin/matlab -r \"rPath = \'' + rPath + '\';addpath(genpath(fullfile(rPath,\'Repository\',\'trunk\')));addpath(genpath(fullfile(rPath,\'spm8_r5236\'))); fPath = \'' + fPath + '\'; w = []; for i = 1:' + str(nJobs) + ';load(fullfile(fPath,[\'' + filein + '_\' num2str(i)  \'.mat\']));w = [w;stats.WTS.w];end;load(fullfile(fPath,\'' + filein + '_1.mat\'));dat = stats.weight_obj; wste = nanstd(w); wmean = nanmean(w); wste(wste==0) = Inf;wZ = wmean./wste;wP = 2*(1-normcdf(abs(wZ)));out = statistic_image();out.dat=wZ\';out.p = wP\';out.volInfo = dat.volInfo;thr=threshold(out,.05,\'fdr\',\'k\',10);t=replace_empty(thr);th=dat;th.dat=wZ\';th.dat(~logical(t.sig))=0;th.fullpath = fullfile(fPath,[\'' + filein + '\' \'_boot_fdr05_k10.nii\']);write(th,\'mni\');out=statistic_image();out.dat=wZ\';out.p = wP\';out.volInfo = dat.volInfo;thr=threshold(out,.001,\'unc\');t=replace_empty(thr);th=dat;th.dat=wZ\';th.dat(~logical(t.sig))=0;th.fullpath = fullfile(fPath,[\'' + filein + '\' \'_boot_001unc.nii\']);write(th,\'mni\');z=dat;z.dat = wZ\';z.fullpath=fullfile(fPath,[\'' + filein + '\' \'_boot_Z.nii\']);write(z,\'mni\');p=dat;p.dat=wP\';p.fullpath=fullfile(fPath,[\'' + filein + '\' \'_boot_pVal.nii\']);write(p,\'mni\');quit;\" -nodisplay -nosplash -nodesktop'
