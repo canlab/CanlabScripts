@@ -1,5 +1,7 @@
 #!/projects/luch0518/software/anaconda/bin/python
 
+# coding: utf-8 
+
 # This script divides up 5000 bootstrap samples into 20 jobs and automatically submits them to the blanca cluster.  It creates a shell script with an embedded matlab template file separately for each cluster job.  
 # Requires that the matlab .mat file load a fmri_data object with the .Y filled in and named 'data' 
 # Really fast - takes about 5 min to do 5000 samples

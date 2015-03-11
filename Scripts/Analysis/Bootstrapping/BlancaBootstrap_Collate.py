@@ -1,5 +1,7 @@
 #!/projects/luch0518/software/anaconda/bin/python
 
+ # coding: utf-8 
+ 
 # This script divides up 5000 bootstrap samples into 20 jobs and automatically submits them to the blanca cluster.  It creates a shell script with an embedded matlab template file separately for each cluster job.  
 # Requires that you set the filename of the output of Blanca_Bootstrap.py and the number of parallel jobs that were run so that they can be integrated.
 # Really fast - takes about 5 min
