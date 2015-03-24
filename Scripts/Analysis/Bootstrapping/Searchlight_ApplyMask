@@ -1,0 +1,30 @@
+# coding: utf-8 
+#!/projects/luch0518/software/anaconda/bin/python
+
+import subprocess
+
+nJobs = 20
+nCores = 1 #Number of cores to request for each job
+filein = 'Emo_Pain_Data.mat' #Name of data file needs to be .mat with a fmri_data() obj called data with data.Y indicating training labels.
+fileout = 'SVR_Searchlight_Emo_Pain' #Name of Output file
+rPath = '/projects/luch0518/software' #path to software libraries can be the same for everyone
+fPath = '/work/wagerlab/labdata/current/Gianaros_Luke/Data' #Location of data
+cPath = '/projects/luch0518/ClusterJobs' #Folder where you will write your job output and scripts.
+email = 'luke.chang@colorado.edu' #Your email address for notification of job completion
+		
+for i in range(1,nJobs+1):
+	#Create Qsub call
+	# qsub_call = 'qsub -q blanca-ics -l nodes=1:ppn=1 -m e -M  ' + email + ' -o ' + cPath + '/bootstrap_' + str(i) + '_output.txt -e ' + cPath + '/bootstrap_' + str(i) + '_error.txt'
+	qsub_call = 'sbatch -A UCB00000358 --qos=blanca-ics -N 1 --ntasks-per-node=' + str(nCores) + ' --mail-type=end --mail-user=' + email + ' --output ' + cPath + '/searchlight_n' + str(i) + '_output.txt -e ' + cPath + '/searchlight_n' + str(i) + '_error.txt'
+
+	#Create matlab script
+	matlab_script = '#!/bin/bash\n\n/curc/tools/x_86_64/rh6/matlab/matlab-2014b/bin/matlab -r \"rPath = \'' + rPath + '\';addpath(genpath(fullfile(rPath,\'CanlabCore\',\'CanlabCore\')));addpath(genpath(fullfile(rPath,\'lasso\')));addpath(genpath(fullfile(rPath,\'spider\')));addpath(genpath(fullfile(rPath,\'spm8_r5236\'))); fPath = \'' + fPath + '\';load(fullfile(fPath,\'' + filein + '\'));	[dat, vx ] = searchlight_applymask(dat1, dat2, \'r\', 5,\'parallel\',[' + str(i) + ',' + str(nJobs) + ']);save(fullfile(fPath,\'' + fileout + '_' + str(i) + '.mat\'),\'dat\',\'vx\',\'-v7.3\');quit;\" -nodisplay -nosplash -nodesktop'
+	
+	#write matlab bash script to file
+	with open( cPath + '/srchlt_' + str(i) + '.sh', "w") as text_file:
+    		text_file.write(matlab_script)	
+
+	#Submit matlab script on cluster.
+	subprocess.call(qsub_call + ' ' + cPath + '/srchlt_' + str(i) + '.sh', shell=True)
+
+
