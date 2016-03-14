@@ -23,5 +23,4 @@ cd(orig_dir);
 
 rmpath(spm12path);
 addpath(spm8path);
-savepath;%Permanently saves the new path.
 

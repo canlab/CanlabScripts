@@ -23,5 +23,4 @@ cd(orig_dir);
 
 rmpath(spm8path);
 addpath(spm12path);
-savepath;
 
