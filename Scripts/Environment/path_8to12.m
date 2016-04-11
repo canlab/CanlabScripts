@@ -22,5 +22,4 @@ spm12path=pwd();
 cd(orig_dir);
 
 addpath(spm12path);
-savepath;
 

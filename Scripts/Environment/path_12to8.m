@@ -22,5 +22,4 @@ spm8path=pwd();
 cd(orig_dir);
 
 addpath(spm8path);
-savepath;%Permanently saves the new path.
 
