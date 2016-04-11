@@ -10,7 +10,7 @@ pathlength=length(m_path);
 for i=1:pathlength
   if any(spm8path_map{i});
     spm8path=m_path{i};
-    break;
+    rmpath(spm8path)
   end
 end
 
@@ -21,7 +21,6 @@ cd('../spm12'); % Assumes spm12 is in the same parent directory.
 spm12path=pwd();
 cd(orig_dir);
 
-rmpath(spm8path);
 addpath(spm12path);
 savepath;
 

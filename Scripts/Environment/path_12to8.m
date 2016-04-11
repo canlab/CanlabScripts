@@ -10,7 +10,7 @@ pathlength=length(m_path);
 for i=1:pathlength
   if any(spm12path_map{i});
     spm12path=m_path{i};
-    break;
+    rmpath(spm12path);
   end
 end
 
@@ -21,7 +21,6 @@ cd('../spm8');
 spm8path=pwd();
 cd(orig_dir);
 
-rmpath(spm12path);
 addpath(spm8path);
 savepath;%Permanently saves the new path.
 
