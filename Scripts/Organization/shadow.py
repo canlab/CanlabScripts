@@ -11,6 +11,10 @@ source_dir=sys.argv[1]
 fullsource=os.path.abspath(source_dir)
 shadow_loc=os.path.abspath(sys.argv[2])
 
+try:
+    os.mkdirs(shadow_loc)
+except OSError:
+    print("Destination directory exits; shadowing anyway...")
 fulltree=walk(source_dir)
 fulltree=[x for x in fulltree]
 
