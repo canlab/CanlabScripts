@@ -39,7 +39,6 @@ for i in range(len(base_paths)):
             continue
     for filename in filenames[i]:
         source_fn=fullsource+"/"+base_paths[i]+"/"+filename
-        print(os.getcwd())
         os.link(source_fn,filename)
     os.chdir(shadow_loc)
 if (exists):
