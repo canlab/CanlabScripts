@@ -12,7 +12,7 @@ fullsource=os.path.abspath(source_dir)
 shadow_loc=os.path.abspath(sys.argv[2])
 
 try:
-    os.mkdirs(shadow_loc)
+    os.makedirs(shadow_loc)
 except OSError:
     print("Destination directory exits; shadowing anyway...")
 fulltree=walk(source_dir)
@@ -28,6 +28,7 @@ for i in range(len(base_paths)):
     try:
         os.makedirs(base_paths[i])
     except OSError:#Catches when the directory on base_paths already exists or when the name is an empty string
+        print("Base Path ", base_paths[i], " already exists or is empty.")
         pass
     try:
         os.chdir(base_paths[i])
@@ -37,7 +38,12 @@ for i in range(len(base_paths)):
         continue
     for filename in filenames[i]:
         source_fn=fullsource+"/"+base_paths[i]+"/"+filename
-        os.link(source_fn,filename)
+        try:
+            os.link(source_fn,filename)
+        except FileExistsError as e:
+            print("File exists: ", filename)
+        except PermissionError as e:
+            print("File can't be copied because of permissions issues:\n", filename)
     os.chdir(shadow_loc)
 if (exists):
     print("Some directories already existed. Not remade.") 
