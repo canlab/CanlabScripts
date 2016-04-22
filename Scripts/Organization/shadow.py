@@ -35,12 +35,6 @@ for i in range(len(base_paths)):
         print(e, "\nError Location=2")
         os.chdir(shadow_loc)
         continue
-    for localdir in dirnames[i]:
-        try:
-            os.mkdir(localdir)
-        except OSError as e:
-            exists=True
-            continue
     for filename in filenames[i]:
         source_fn=fullsource+"/"+base_paths[i]+"/"+filename
         os.link(source_fn,filename)
