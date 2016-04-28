@@ -1,34 +1,38 @@
-load DB.mat
+load BMRK5_FreeAssoc_MturkRatings.mat
 
-N=DB.N;
-paintouch=DB.Pain_Touch;
-Contrast=DB.Contrast;
-
-pain=0;
-touch=0;
-both=0;
-repeated=0;
-added_contrasts={-1};
-contrast_index=1;
+N=subject;
+vm=valence_mean;
+clear valence_totals;
+clear valence_numbers;
+clear added_subjects;
+valence_totals{1}=0;
+valence_numbers{1}=0;
+added_subjects{1}=subject(1);
+subject_counters{1}=0;
+subject_index=1;
+subject_counter=1;
 
 for i=1:length(N)
-  if any(find(cell2mat(added_contrasts)==Contrast(i)))
-    repeated=repeated+1;
-    continue
+  if any(find(cell2mat(added_subjects)==subject(i)))
+    subject_index=find(cell2mat(added_subjects)==subject(i));
   else
-    added_contrasts{contrast_index}=Contrast(i);
-    contrast_index=contrast_index+1;
-    if strcmp(paintouch(i), 'Pain')
-      pain = pain + N(i);
-    elseif strcmp(paintouch(i), 'Touch')
-      touch= touch + N(i);
-    else
-      both=both+N(i);
-    end
+    subject_counter=subject_counter+1;
+    added_subjects{subject_counter}=subject(i);
+    subject_index=subject_counter;
+    valence_totals{subject_counter}=0;
+    valence_numbers{subject_counter}=0;
+  end
+  if isnan(vm(i))
+    fprintf('NaN at index %d in subject %d...\n',i,N(i));
+  else
+    valence_totals{subject_index}=valence_totals{subject_index} + vm(i);
+    valence_numbers{subject_index}=valence_numbers{subject_index} +1;
   end
 end
 
-pain
-touch
-both
-repeated
+subj_list=cell2mat(added_subjects)
+avg_list=cell2mat(valence_totals) ./ cell2mat(valence_numbers)
+
+varlist={'N', 'vm', 'subject_counters', 'subject_index', 'subject_counter', 'added_subjects', 'valence_totals', 'valence_numbers','i'};
+clear(varlist{:});
+clear varlist;
