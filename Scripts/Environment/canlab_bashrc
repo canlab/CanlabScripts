@@ -5,33 +5,42 @@
 #	. /etc/bashrc
 #fi
 
-# User specific aliases and functions
+# Make rm interactive, and ssh able to open windows
 alias rm='rm -i'
 
 alias ssh='ssh -Y'
 
+#Put the username, hostname, and current path on the command line.
 export PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 
+#This is here as a skeleton in case you later need to edit your LD_LIBRARY_PATH. 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
+#This adds ~/local/bin to your path, so executables you make yourself can go there and
+#still be usable. Also adds some MPI executables to your path, which is neccessary to compile
+#some programs that run in parallel.
 export PATH=$HOME/local/bin:$PATH:/usr/local/mpich2/bin:/usr/local/mpich2-1.0.7/bin
 
+#Locally installed programs also have man pages
+export MANPATH=$MANPATH:~/local/man
 
-export MANPATH=$MANPATH:~/progs/man
+#This defines the colors that will be used by `ls'.
+export LS_COLORS="no=00:fi=00:di=01;34:ln=00;36:pi=40;33:so=00;35:bd=40;33;01:cd=40;33;01:or=01;05;37;41:mi=01;05;37;41:ex=01;32:*.cmd=00;32:*.exe=00;32:*.com=00;32:*.btm=00;32:*.bat=00;32:*.zsh=00;32:*.sh=00;32:*.csh=00;32:*.tar=00;31:*.tgz=00;31:*.arj=00;31:*.taz=00;31:*.lzh=00;31:*.zip=00;31:*.z=00;31:*.Z=00;31:*.gz=00;31:*.xz=00;31:*.bz2=00;31:*.bz=00;31:*.tz=00;31:*.rpm=00;31:*.deb=00;31:*.cpio=00;31:*.jpg=00;35:*.gif=00;35:*.bmp=00;35:*.xbm=00;35:*.xpm=00;35:*.dvi=00;35:*.png=00;35:*.tif=00;35:*.ps=00;35:"
 
-export LS_COLORS="no=00:fi=00:di=01;34:ln=00;36:pi=40;33:so=00;35:bd=40;33;01:cd=40;33;01:or=01;05;37;41:mi=01;05;37;41:ex=01;32:*.cmd=00;32:*.exe=00;32:*.com=00;32:*.btm=00;32:*.bat=00;32:*.zsh=00;32:*.sh=00;32:*.csh=00;32:*.tar=00;31:*.tgz=00;31:*.arj=00;31:*.taz=00;31:*.lzh=00;31:*.zip=00;31:*.z=00;31:*.Z=00;31:*.gz=00;31:*.bz2=00;31:*.bz=00;31:*.tz=00;31:*.rpm=00;31:*.cpio=00;31:*.jpg=00;35:*.gif=00;35:*.bmp=00;35:*.xbm=00;35:*.xpm=00;35:*.dvi=00;35:*.png=00;35:*.tif=00;35:*.ps=00;35:"
-
+#Detect if this script is on a system with modules (like blanca), and load those modules if so.
 if type -t module > /dev/null; then
-    module load fftw
-    module load gsl
+    module load fftw #The Fastest Fourier Transform in the West.
+    module load gsl #The Gnu Scientific Library
     module load moab/moab-7.2.2
     module load python/anaconda-2.1.0 #includes numpy, etc.
-    module load slurm/slurm
+    module load slurm/slurm #Batch submission system
     module load matlab/matlab-2014b
 fi
 
+#Make the prompt pretty. You can easily turn this off.
 force_color_prompt=yes
 
+#This checks that you set force_color_prompt to true and have a color terminal.
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
 	# We have color support; assume it's compliant with Ecma-48
@@ -43,4 +52,5 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+#Make files and folders you create editable by default by other people in the group.
 umask 002
