@@ -1,0 +1,6 @@
+#Depending on the circumstance, either .bashrc
+#or .bash_profile may be loaded. You probably want the same
+#thing in either case, so this just loads and runs .bashrc (if it exists).
+if [ -f ~/.bashrc ]; then
+   source ~/.bashrc
+fi
