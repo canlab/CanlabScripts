@@ -1,3 +1,4 @@
+#!/bin/bash
 # .bashrc
 
 # Source global definitions
@@ -37,6 +38,11 @@ if type -t module > /dev/null; then
     module load matlab/matlab-2014b
 fi
 
+if [ -e /Applications/MATLAB_R2016a.app/bin/matlab ] ;
+then export PATH=$PATH:/Applications/MATLAB_R2016a.app/bin ;
+else export PATH=$PATH:/Applications/MATLAB_R2014a.app/bin ;
+fi
+
 #Make the prompt pretty. You can easily turn this off.
 force_color_prompt=yes
 
@@ -54,3 +60,4 @@ fi
 
 #Make files and folders you create editable by default by other people in the group.
 umask 002
+
