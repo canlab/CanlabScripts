@@ -1,7 +1,7 @@
 LabScripts
 ==========
 
-A compilation of useful scripts commonly used in canlab written in Matlab, Python, and Bash.
+A compilation of useful scripts for fMRI analysis commonly used in canlab written in Matlab, Python, and Bash. These are mainly for use in the CANlab and are customized to our computing environment.
 
 When adding scripts make sure that the documentation describes how to use the script and that it is reasonably well commented.
 
