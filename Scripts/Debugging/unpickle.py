@@ -1,4 +1,4 @@
-#!/work/ics/data/projects/wagerlab/Resources/anaconda2/bin/python
+#!/usr/bin/env python
 
 ####################################################################
 # This program is designed to display the information contained in #
