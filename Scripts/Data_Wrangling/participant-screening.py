@@ -26,27 +26,26 @@ def filter_function(df):
              df['pain_screening1___6'] <= 1 and
              df['pain_screening1___7'] <= 1 and
              df['pain_screening1___13'] <= 1 and
-             (df['do_you_have_chronic_low_ba'] == 0 or
-              np.isnan(df['do_you_have_chronic_low_ba'])) and
              df['contact_heat'] == 0 and
              df['contact_cold'] == 0 and
              df['pain_sensitivity1'] == 0 and
              df['pain_amount1'] == 0 and
-             df['meds'] <= 1 and
+             (df['meds'] <= 1 or np.isnan(df['meds'])) and
              df['fmri_studies_consent'] == 1 and
              df['study_screening1___6'] == 1 and
              df['mri_screening1___16'] <= 1 and
              df['mri_screening1___19'] <= 1 and
-             df['welder_machinist'] == 0 and
-             df['metal_eyes1'] == 0 and
-             df['pregnant1'] == 0 and
-             (df['contact_lenses1'] == 3 or df['contact_lenses1==2']))
+             (df['welder_machinist'] == 0 or np.isnan(df['metal_eyes1'])) and
+             (df['metal_eyes1'] == 0 or np.isnan(df['metal_eyes1'])) and
+             (df['pregnant1'] == 0 or np.isnan(df['pregnant1'])) and
+             df['contact_lenses1'] != 1)
 
+relevant_items=['consent1','authorization___1','consent_to_contact1','painstudies','pain_screening1___6','pain_screening1___7','pain_screening1___13','do_you_have_chronic_low_ba','contact_heat','contact_cold','pain_sensitivity1','pain_amount1','meds','fmri_studies_consent','study_screening1___6','mri_screening1___16','mri_screening1___19','welder_machinist','metal_eyes1','pregnant1','contact_lenses1','contact_lenses1']
 
 filename=sys.argv[1]
 endlines=True
 try:
-    last_lines=int(sys.argv[2])
+    last_lines=int(sys.argv[2])+1
 except (IndexError):
     endlines=False
     last_lines=0
