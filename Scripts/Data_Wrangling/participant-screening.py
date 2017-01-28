@@ -40,8 +40,6 @@ def filter_function(df):
              (df['pregnant1'] == 0 or np.isnan(df['pregnant1'])) and
              df['contact_lenses1'] != 1)
 
-relevant_items=['consent1','authorization___1','consent_to_contact1','painstudies','pain_screening1___6','pain_screening1___7','pain_screening1___13','do_you_have_chronic_low_ba','contact_heat','contact_cold','pain_sensitivity1','pain_amount1','meds','fmri_studies_consent','study_screening1___6','mri_screening1___16','mri_screening1___19','welder_machinist','metal_eyes1','pregnant1','contact_lenses1','contact_lenses1']
-
 filename=sys.argv[1]
 endlines=True
 try:
