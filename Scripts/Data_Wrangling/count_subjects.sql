@@ -13,6 +13,7 @@ select count(distinct subject_id) from occasions
 where (pilot=0 or pilot is null) and (bad_data=0 or bad_data is null) and (no_show=0 or no_show is null)
 and (fmri=0 or fmri is null)
 and study_id in (9,10,11,12,19,20,21,25,27,28,33,37,43)
+and study_id>29
 
 -- Count behavioral placebo subjects
 select count(distinct subject_id) from occasions
@@ -36,6 +37,7 @@ select count(distinct subject_id) from occasions
 where (pilot=0 or pilot is null) and (bad_data=0 or bad_data is null) and (no_show=0 or no_show is null)
 and (fmri=1 or fmri is null)
 and study_id in (18,19,20,33,37,46,49)
+and study_id>29
 
 -- Count fmri placebo subjects
 select count(distinct subject_id) from occasions
