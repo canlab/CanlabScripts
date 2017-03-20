@@ -23,3 +23,4 @@ cd(orig_dir);
 
 addpath(spm8path);
 
+clear('m_path','spm8path_map','pathlength','spm8path','orig_dir','spm12path')
