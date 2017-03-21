@@ -22,4 +22,4 @@ spm12path=pwd();
 cd(orig_dir);
 
 addpath(spm12path);
-clear('m_path','spm8path_map','pathlength','spm8path','orig_dir','spm12path')
+clear('m_path','spm8path_map','pathlength','spm8path','orig_dir','spm12path','i')
