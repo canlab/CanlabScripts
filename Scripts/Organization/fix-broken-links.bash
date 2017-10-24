@@ -6,7 +6,7 @@ do
     if [ -f $linktarget ] ; then 
 	echo $linktarget is a valid link
     else
-	newtarget=$(echo $linktarget | sed 's/\/dreamio.*Analyses\///g')
+	newtarget=$(echo $linktarget | sed 's/\/dreamio.*analyses\///g')
 	echo rm $link
 	echo gln -s $newtarget `basename "$link"` -t `dirname $link`
     fi
