@@ -3,7 +3,7 @@
 for link in $@;
 do
     linktarget=$(readlink $link);
-    if [ -f $linktarget]; then 
+    if [ -f $linktarget ] ; then 
 	echo $linktarget is a valid link
     else
 	newtarget=$(echo $linktarget | sed 's/\/dreamio.*Analyses\///g')
