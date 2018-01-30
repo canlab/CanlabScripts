@@ -15,7 +15,7 @@ import datetime as dt
 from math import floor
 
 #This is the list of column headers to output.
-column_out=["participant_info_complete","name1","email_address1","phone_number1","session_availability1","which_meds","date_of_birth1"]
+column_out=["participant_info_complete","name1","email_address1","phone_number1","session_availability1","which_meds","date_of_birth1","sex1"]
 
 # Get approximate age from date of birth. This is imprecise and fudges leap days,
 # but should never be more than a few days off.
@@ -34,8 +34,8 @@ def age_from_date(strdob):
 def filter_function(df):
     strdob=df['date_of_birth1']
     age=age_from_date(strdob)
-    youngerThan70=age < 70 # Younger than 70
-    olderThan21=age > 21  # Older than 21
+    youngerThan70=age <= 70 # Younger than 70
+    olderThan21=age >= 21  # Older than 21
     ageOK=youngerThan70 and olderThan21
     return  (df['consent1'] == 1 and
              ageOK and
