@@ -10,9 +10,10 @@
 import numpy as np
 import scipy as sp
 import pandas as pd
-import sys, os
+import sys, os, re
 import datetime as dt
 from math import floor
+
 
 #This is the list of column headers to output.
 column_out=["participant_info_complete","name1","email_address1","phone_number1","session_availability1","which_meds","date_of_birth1"]
@@ -21,11 +22,15 @@ column_out=["participant_info_complete","name1","email_address1","phone_number1"
 # but should never be more than a few days off.
 
 def age_from_date(strdob):
-    dateparts=strdob.split('/')
-    dateparts=[int(x) for x in dateparts]
-    dob=dt.date(month=dateparts[0], day=dateparts[1], year=dateparts[2]) # Date object
-    age=dob.today()-dob
-    return floor(age.days/365.25)
+    try:
+        dateparts=re.split('[/-]', strdob)
+        dateparts=[int(x) for x in dateparts]
+        dob=dt.date(year=dateparts[0], month=dateparts[1], day=dateparts[2]) # Date object
+        age=dob.today()-dob
+        return floor(age.days/365.25)
+    except(ValueError):
+        print(dateparts)
+        raise ValueError
 
 #This is the function that defines the relevant lines to
 #print. It is a boolean function that takes one argument,
@@ -55,7 +60,6 @@ def filter_function(df):
              df['study_screening1___3'] == 0 and
              df['study_screening1___4'] == 0 and
              df['study_screening1___5'] == 0 and
-             df['date_of_birth1']
              df['mri_screening1___16'] <= 1 and
              df['mri_screening1___19'] <= 1 and
              (df['welder_machinist'] == 0 or np.isnan(df['metal_eyes1'])) and
