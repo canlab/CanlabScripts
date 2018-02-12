@@ -34,11 +34,11 @@ def filter_function(df):
              (df['pregnant1'] == 0 or np.isnan(df['pregnant1'])) and
              df['t'] <= 6 and
              df['a'] <= 6 and
-             df['can'] <= 2 and
-             df['co'] <= 3 and 
+             df['can'] <= 3 and
+             df['co'] <= 4  and 
              df['am'] <= 3 and
-             df['i'] <= 2 and
-             df['s'] <=2 and
+             df['i'] <= 3 and
+             df['s'] <= 3 and
              df['h'] <= 3 and
              df['o'] <= 3 and
              df['other'] <= 2 and
