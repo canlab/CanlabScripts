@@ -54,6 +54,7 @@ def filter_function(df):
              df['contact_cold'] == 0 and
              df['pain_sensitivity1'] == 0 and
              df['pain_amount1'] == 0 and
+			 df['do_you_have_chronic_pain'] == 0 and
              (df['meds'] <= 1 or np.isnan(df['meds'])) and
              df['fmri_studies_consent'] == 1 and
              df['study_screening1___2'] == 0 and
