@@ -8,7 +8,7 @@ usage = "\nThis script converts raw dicoms in primsa_fit folder to pre BIDSkit f
 # Usually '/work/ics/data/archive/human/dicom/prisma_fit/twager/YOURSTUDY/' Your study on Blanca
 
 if len(sys.argv) < 3:
-    print usage
+    print(usage)
     sys.exit()
 
 rawdir = sys.argv[1] 
@@ -23,22 +23,22 @@ subjectdirs = os.listdir(rawdir)
 # Each subject could have multiple runs.
 for sdir in subjectdirs:
     if os.path.isdir(rawdir+'/'+sdir): # is a dir, not a file
-        print "processing subject " + sdir
+        print("processing subject " + sdir)
         if not os.path.isdir(outdir+'/dicoms/'+sdir):
             os.mkdir(outdir+'/'+'dicoms'+'/'+sdir) # make the output dir if doesn't exist
 
         sessdirs = sorted(os.listdir((rawdir+'/'+sdir))) # get the sessions
-	sesscount = len(sessdirs)
+        sesscount = len(sessdirs)
         for sessdir in range(1,sesscount+1):
             rdir = outdir+'/'+'dicoms' +'/'+ sdir+'/'+ str(sessdir)
             
             # if the session dir already exists, skip
             if os.path.isdir(rdir):
-                print "  - " + sdir + '/' + str(sessdir) + " already exists, skipping"
+                print("  - " + sdir + '/' + str(sessdir) + " already exists, skipping")
                 continue
             else:
                 os.mkdir(rdir)
-            
+                print("  - " + sdir + '/' + str(sessdir) + " being processed")
             taskdirs = os.listdir((rawdir+'/'+sdir+'/'+ str(sessdirs[sessdir-1])))
             for tdir in taskdirs:
                 dicoms = os.listdir((rawdir+'/'+sdir+'/'+ str(sessdirs[sessdir-1]) +'/'+tdir))
