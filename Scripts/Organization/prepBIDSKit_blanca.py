@@ -1,7 +1,7 @@
 import os
 import sys
 
-usage = "\nThis script converts raw dicoms in primsa_fit folder to pre BIDSkit format.  This is the format that BIDSkit expects for conversion to BIDS, which is basically a list of all the dicoms.  This script makes hard links to the files so they are not duplicated.  \n\nExample usage: \n> python prepbidsfromblanca.py /work/ics/data/archive/human/dicom/prisma_fit/twager/olp4cbp_200097 /work/ics/data/projects/wagerlab/labdata/data/OLP4CBP/Imaging/raw \n"
+usage = "\nThis script converts raw dicoms in primsa_fit folder to pre BIDSkit format.  This is the format that BIDSkit expects for conversion to BIDS, which is basically a list of all the dicoms.  This script makes hard links to the files so they are not duplicated.  \n\nExample usage: \n> python prepBIDSKit_blanca.py /work/ics/data/archive/human/dicom/prisma_fit/twager/olp4cbp_200097 /work/ics/data/projects/wagerlab/labdata/data/OLP4CBP/Imaging/raw \n"
 
 
 # Set the base directory in Blanca where raw dicoms are stored.
@@ -44,4 +44,4 @@ for sdir in subjectdirs:
                 dicoms = os.listdir((rawdir+'/'+sdir+'/'+ str(sessdirs[sessdir-1]) +'/'+tdir))
                 for dicom in dicoms:
                     if os.path.isfile((rawdir+'/'+sdir+'/'+ str(sessdirs[sessdir-1]) +'/'+tdir+'/'+dicom)):
-                        os.link((rawdir+'/'+sdir+'/'+ str(sessdirs[sessdir-1]) +'/'+tdir+'/'+dicom),(rdir + '/' + dicom))
+                        os.symlink((rawdir+'/'+sdir+'/'+ str(sessdirs[sessdir-1]) +'/'+tdir+'/'+dicom),(rdir + '/' + dicom))
