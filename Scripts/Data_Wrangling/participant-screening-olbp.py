@@ -59,11 +59,6 @@ def filter_function(df):
              (df['do_you_have_chronic_low_ba'] == 0 or np.isnan(df['do_you_have_chronic_low_ba'])) and
              df['pain_sensitivity1'] == 0 and
              df['pain_amount1'] == 0 and
-<<<<<<< HEAD
-			 df['do_you_have_chronic_pain'] == 0 and
-             (df['meds'] <= 1 or np.isnan(df['meds'])) and
-=======
->>>>>>> 8a3ec85b060017b3af572f3e564cf7e9a83cfaf7
              df['fmri_studies_consent'] == 1 and
              df['study_screening1___3'] == 0 and
              df['study_screening1___4'] == 0 and
