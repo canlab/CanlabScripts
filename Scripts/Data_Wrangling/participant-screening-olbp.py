@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#Note: This requires that pandas, numpy, and scipy are installed, and runs python 3.
+#Note: This requires that pandas, numpy, and scipy are installed, and runs python 2.
 
 #Usage: ./participant_screening.py <CSV filename> <lines to take>
 
