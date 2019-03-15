@@ -37,6 +37,7 @@ motion_cols = contains(regs,'rot') | contains(regs,'trans') | contains(regs,'dif
 if sum(motion_cols) < 24 % have not yet computed diffs and squared diffs
     
     % compute squared, diffs, and squared diffs of motion
+    % this is a clunky way to do it (more elegant to do many at once) 
     R.trans_x_sq = R.trans_x .^ 2; R.trans_y_sq = R.trans_y .^ 2; R.trans_z_sq = R.trans_z .^ 2;
     R.rot_x_sq = R.rot_x .^ 2; R.rot_y_sq = R.rot_y .^ 2; R.rot_z_sq = R.rot_z .^ 2;
 
