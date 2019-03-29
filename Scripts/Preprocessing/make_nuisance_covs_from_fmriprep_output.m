@@ -12,7 +12,7 @@
 % in a Jan 2019 Wager lab mtg, we decided that its sensible to include the
 % following in a 1st level model for task data: 24 motion regressors, CSF
 % (esp. a degraded/conservative CSF mask), canlab spike detection on the
-% raw data, spikes for initial volumes (5 sec), DVARS / RMSQ, framewise displacement.  We decided _not_ to
+% raw data, spikes for initial volumes (5 sec), spikes as determined by DVARS / RMSQ (Zscore > 2.5), framewise displacement.  We decided _not_ to
 % include WM signal, as this often can contain BOLD signal of neuronal
 % origin.  -- Yoni Ashar
 
@@ -22,8 +22,6 @@ confound_fname_csv = [fmriprep_confounds_fname(1:end-3) 'csv']; % replace tsv wi
 copyfile(fmriprep_confounds_fname, confound_fname_csv); % dumb hack to appease matlab -- readtable will only work with .csv, not .tsv
 R = readtable(confound_fname_csv, 'TreatAsEmpty', 'n/a');
 
-regs = R.Properties.VariableNames;
-
 % replace NaNs in first row with Os
 wh_replace = ismissing(R(1,:));
 if any(wh_replace)
@@ -31,30 +29,27 @@ if any(wh_replace)
 end
 
 
-% find motion cols
-motion_cols = contains(regs,'rot') | contains(regs,'trans') | contains(regs,'diff'); 
+% compute 24 motion regs
+mot_names = {'trans_x','trans_y','trans_z','rot_x','rot_y','rot_z'};
+motion = R{:,mot_names};
+diffs = [zeros(1,6); diff(motion)];
+mo_sq = motion .^ 2;
+mo_sq_diff = [zeros(1,6); diff(mo_sq)];
+motion18 = [diffs mo_sq mo_sq_diff];
 
-if sum(motion_cols) < 24 % have not yet computed diffs and squared diffs
+mot_names18 = [cellfun( @(x) [x '_diff'], mot_names, 'UniformOutput',false) cellfun( @(x) [x '_sq'], mot_names, 'UniformOutput',false) cellfun( @(x) [x '_sq_diff'], mot_names, 'UniformOutput',false) ];
+
+motion18 = array2table(motion18, 'VariableNames', mot_names18);
+head(motion18)
     
-    % compute squared, diffs, and squared diffs of motion
-    % this is a clunky way to do it (more elegant to do many at once) 
-    R.trans_x_sq = R.trans_x .^ 2; R.trans_y_sq = R.trans_y .^ 2; R.trans_z_sq = R.trans_z .^ 2;
-    R.rot_x_sq = R.rot_x .^ 2; R.rot_y_sq = R.rot_y .^ 2; R.rot_z_sq = R.rot_z .^ 2;
+% remove previously saved motion cols 1) in case there was an error, and 2)
+% so i can re-add them without conflict
+R(:,startsWith(R.Properties.VariableNames, 'diff')) = [];
+R(:,endsWith(R.Properties.VariableNames, 'sq')) = [];
 
-    R.diffX = [0; diff(R.rot_x)]; R.diffY = [0; diff(R.rot_y)]; R.diffZ = [0; diff(R.rot_z)];
-    R.diffRotX = [0; diff(R.rot_x)]; R.diffRotY = [0; diff(R.rot_y)]; R.diffRotZ = [0; diff(R.rot_z)];
+% add them in
+R = [R motion18];
 
-    R.diffXsq = R.diffX .^ 2; R.diffy_sq = R.diffY .^ 2; R.diffz_sq = R.diffZ .^ 2;
-    R.diffRotXsq = R.diffRotX .^ 2; R.diffRoty_sq = R.diffRotY .^ 2; R.diffRotz_sq = R.diffRotZ .^ 2;
-
-    % find updated motion cols
-    motion_cols = contains(regs,'rot') | contains(regs,'trans') | contains(regs,'diff'); 
-    
-elseif sum(motion_cols) > 24
-    error('Too many motion columns?!')
-else
-    % we have 24 regs -- motion cols already computed. do nothing.
-end
 
 % add spikes for initial volumes. can "redo" this if already exists; not a
 % problem
@@ -63,7 +58,7 @@ R.initial_vols = zeros(height(R),1);
 R.initial_vols(1:nvols) = ones(nvols,1);
 
 % find spike cols
-spike_cols = contains(regs,'nuisance_covs'); 
+spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
 
 if sum(spike_cols) == 0 % have not yet computed and added these
 
@@ -80,11 +75,39 @@ if sum(spike_cols) == 0 % have not yet computed and added these
 end
 
 
-Rfull = R;
+% make spike regs from dvars. we dont expect a reliable signal in the brain
+% that tracks dvars, so less sensible to include as a parametric regressor.
+% better to use to identify outliers
+dvarsZ = [ 0; zscore(R.dvars(2:end))]; % first element of dvars always = 0, drop it from zscoring and set it to Z=0
+dvars_spikes = find(dvarsZ > 2.5); % arbitrary cutoff -- Z > 2.5
 
-% Select reasonable subset
-Rselected = R(:,motion_cols | spike_cols);
-Rselected.dvars = R.dvars;
+% make regs from spike indices
+dvars_spikes_regs = zeros(height(R),length(dvars_spikes));
+for i=1:length(dvars_spikes)
+    dvars_spikes_regs(dvars_spikes(i),i) = 1;
+end
+
+% plot: compare dvars spikes to mahal spikes
+create_figure('spikes'); imagesc([sum(dvars_spikes_regs, 2) sum(R{:,spike_cols},2)])
+set(gca, 'XTick', 1:2,'XTickLabel', {'Dvars spikes', 'Mahal spikes'})%, 'Position', [600 400 450 550])
+ylabel('TRs')
+
+% find dvars_spike_regs that are non-redundant with mahal spikes, and
+% include them. compare TRs at which spike happens
+same = ismember(dvars_spikes, find(sum(R{:,spike_cols},2)));
+dvars_spikes_regs(:,same) = []; % drop the redundant ones
+
+% add them in to R
+dvars_spikes_regs = array2table(dvars_spikes_regs);
+R = [R dvars_spikes_regs];
+
+% Select reasonable subset of regressors
+regs = R.Properties.VariableNames;
+dvars_cols = contains(regs,'dvars_spikes'); 
+spike_cols = contains(regs,'nuisance_covs'); 
+motion_cols = contains(regs,'rot') | contains(regs,'trans') | contains(regs,'diff'); 
+
+Rselected = R(:,motion_cols | spike_cols | dvars_cols);
 Rselected.framewise_displacement = R.framewise_displacement;
 Rselected.csf = R.csf;
 
@@ -92,5 +115,6 @@ Rselected.csf = R.csf;
 writetable(R, confound_fname_csv);
 movefile(confound_fname_csv, fmriprep_confounds_fname); % revert to .tsv to appease BIDS spec
 
+Rfull = R;
 
 end
