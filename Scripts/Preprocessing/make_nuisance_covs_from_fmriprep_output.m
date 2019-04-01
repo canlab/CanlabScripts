@@ -40,12 +40,12 @@ motion18 = [diffs mo_sq mo_sq_diff];
 mot_names18 = [cellfun( @(x) [x '_diff'], mot_names, 'UniformOutput',false) cellfun( @(x) [x '_sq'], mot_names, 'UniformOutput',false) cellfun( @(x) [x '_sq_diff'], mot_names, 'UniformOutput',false) ];
 
 motion18 = array2table(motion18, 'VariableNames', mot_names18);
-head(motion18)
+%head(motion18)
     
 % remove previously saved motion cols 1) in case there was an error, and 2)
 % so i can re-add them without conflict
-R(:,startsWith(R.Properties.VariableNames, 'diff')) = [];
-R(:,endsWith(R.Properties.VariableNames, 'sq')) = [];
+R(:,contains(R.Properties.VariableNames, 'diff')) = [];
+R(:,contains(R.Properties.VariableNames, 'sq')) = [];
 
 % add them in
 R = [R motion18];
@@ -97,7 +97,9 @@ ylabel('TRs')
 same = ismember(dvars_spikes, find(sum(R{:,spike_cols},2)));
 dvars_spikes_regs(:,same) = []; % drop the redundant ones
 
-% add them in to R
+% remove any previous dvars_spikes_regs, and add the ones i just made
+dvars_cols = contains(R.Properties.VariableNames,'dvars_spikes'); 
+R(:,dvars_cols) = [];
 dvars_spikes_regs = array2table(dvars_spikes_regs);
 R = [R dvars_spikes_regs];
 
