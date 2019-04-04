@@ -18,9 +18,7 @@
 
 function [Rfull, Rselected] = make_nuisance_covs_from_fmriprep_output(fmriprep_confounds_fname, raw_img_fname, TR)
 
-confound_fname_csv = [fmriprep_confounds_fname(1:end-3) 'csv']; % replace tsv with csv
-copyfile(fmriprep_confounds_fname, confound_fname_csv); % dumb hack to appease matlab -- readtable will only work with .csv, not .tsv
-R = readtable(confound_fname_csv, 'TreatAsEmpty', 'n/a');
+R = readtable(fmriprep_confounds_fname, 'TreatAsEmpty', 'n/a', 'filetype', 'text');
 
 % replace NaNs in first row with Os
 wh_replace = ismissing(R(1,:));
@@ -114,8 +112,7 @@ Rselected.framewise_displacement = R.framewise_displacement;
 Rselected.csf = R.csf;
 
 % write back to file
-writetable(R, confound_fname_csv);
-movefile(confound_fname_csv, fmriprep_confounds_fname); % revert to .tsv to appease BIDS spec
+writetable(R, fmriprep_confounds_fname);
 
 Rfull = R;
 
