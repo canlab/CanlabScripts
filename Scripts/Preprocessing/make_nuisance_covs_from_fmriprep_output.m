@@ -112,7 +112,7 @@ Rselected.framewise_displacement = R.framewise_displacement;
 Rselected.csf = R.csf;
 
 % write back to file
-writetable(R, fmriprep_confounds_fname);
+writetable(R, fmriprep_confounds_fname, 'filetype', 'text');
 
 Rfull = R;
 
