@@ -62,14 +62,17 @@ if sum(spike_cols) == 0 % have not yet computed and added these
 
     % add in canlab spike detection (Mahalanobis distance)
     [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);
-
+ 
+    % motion can create artifacts lasting longer. also flag the following 4
+    % TRs
+    
+    
     nuisance_covs = nuisance_covs{1};
     nuisance_covs(:,1) = []; %drop gtrim 
     R = [R array2table(nuisance_covs)];
 
     % find updated spike cols
-    spike_cols = contains(regs,'nuisance_covs'); 
-
+    spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
 end
 
 
@@ -77,8 +80,11 @@ end
 % that tracks dvars, so less sensible to include as a parametric regressor.
 % better to use to identify outliers
 dvarsZ = [ 0; zscore(R.dvars(2:end))]; % first element of dvars always = 0, drop it from zscoring and set it to Z=0
-dvars_spikes = find(dvarsZ > 2.5); % arbitrary cutoff -- Z > 2.5
+dvars_spikes = find(dvarsZ > 3); % arbitrary cutoff -- Z > 2.5
 
+% motion can create artifacts lasting longer. also flag the following 4
+% TRs
+    
 % make regs from spike indices
 dvars_spikes_regs = zeros(height(R),length(dvars_spikes));
 for i=1:length(dvars_spikes)
