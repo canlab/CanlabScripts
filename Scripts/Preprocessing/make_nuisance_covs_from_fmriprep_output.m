@@ -15,8 +15,13 @@
 % raw data, spikes for initial volumes (5 sec), spikes as determined by DVARS / RMSQ (Zscore > 2.5), framewise displacement.  We decided _not_ to
 % include WM signal, as this often can contain BOLD signal of neuronal
 % origin.  -- Yoni Ashar
+% Adding inputs and code for extending the number of images affected by the
+% scn_spike_detection script. Based on Power (2019), we're assuming that
+% TR's immediately following a transient signal spike will be affected and
+% should therefore be filtered in a similar manner to the spike itself.
+% --Zach Anderson (4/19/19)
 
-function [Rfull, Rselected] = make_nuisance_covs_from_fmriprep_output(fmriprep_confounds_fname, raw_img_fname, TR)
+function [Rfull, Rselected] = make_nuisance_covs_from_fmriprep_output(fmriprep_confounds_fname, raw_img_fname, TR, spike_duration)
 
 R = readtable(fmriprep_confounds_fname, 'TreatAsEmpty', 'n/a', 'filetype', 'text');
 
@@ -65,12 +70,27 @@ if sum(spike_cols) == 0 % have not yet computed and added these
  
     % motion can create artifacts lasting longer. also flag the following 4
     % TRs
-    
-    
-    nuisance_covs = nuisance_covs{1};
-    nuisance_covs(:,1) = []; %drop gtrim 
-    R = [R array2table(nuisance_covs)];
+    if exist('spike_duration') == 1
+        nuisance_covs_with_timing_adjustment = nuisance_covs{1};
+        spikes = spikes{1};
+        [~, col] = find(nuisance_covs_with_timing_adjustment(2:39)>0);
+        for i = 1:length(spikes)
+            nuisance_covs_with_timing_adjustment(spikes(i):spikes(i)+spike_duration, col(i)+1) = 1;
+        end        
+        nuisance_covs_with_timing_adjustment(:,1) = []; %drop gtrim 
+        R = [R array2table(nuisance_covs_with_timing_adjustment(1:length(nuisance_covs{1}),:))];
+    else
+        % add in canlab spike detection (Mahalanobis distance)
+        [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);
+        % motion can create artifacts lasting longer. also flag the following 4
+        % TRs
+        nuisance_covs = nuisance_covs{1};
+        nuisance_covs(:,1) = []; %drop gtrim 
+        R = [R array2table(nuisance_covs)];
 
+        % find updated spike cols
+        spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
+    end
     % find updated spike cols
     spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
 end
@@ -84,6 +104,7 @@ dvars_spikes = find(dvarsZ > 3); % arbitrary cutoff -- Z > 2.5
 
 % motion can create artifacts lasting longer. also flag the following 4
 % TRs
+
     
 % make regs from spike indices
 dvars_spikes_regs = zeros(height(R),length(dvars_spikes));
