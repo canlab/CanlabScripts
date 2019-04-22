@@ -15,13 +15,17 @@
 % raw data, spikes for initial volumes (5 sec), spikes as determined by DVARS / RMSQ (Zscore > 2.5), framewise displacement.  We decided _not_ to
 % include WM signal, as this often can contain BOLD signal of neuronal
 % origin.  -- Yoni Ashar
+%
 % Adding inputs and code for extending the number of images affected by the
 % scn_spike_detection script. Based on Power (2019), we're assuming that
 % TR's immediately following a transient signal spike will be affected and
-% should therefore be filtered in a similar manner to the spike itself.
+% should therefore be filtered in a similar manner to the spike itself. If
+% the 'spike_additional_vols' variable is left blank, script will proceed
+% as it did before, generating nuisance regressors identifying only the
+% original spikes.
 % --Zach Anderson (4/19/19)
 
-function [Rfull, Rselected] = make_nuisance_covs_from_fmriprep_output(fmriprep_confounds_fname, raw_img_fname, TR, spike_duration)
+function [Rfull, Rselected] = make_nuisance_covs_from_fmriprep_output(fmriprep_confounds_fname, raw_img_fname, TR, spike_additional_vols)
 
 R = readtable(fmriprep_confounds_fname, 'TreatAsEmpty', 'n/a', 'filetype', 'text');
 
@@ -60,51 +64,28 @@ nvols = round(5/TR);  % first 5 seconds
 R.initial_vols = zeros(height(R),1);
 R.initial_vols(1:nvols) = ones(nvols,1);
 
+% first remove any additional vols that are present    
 % find spike cols
 spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
 
 if sum(spike_cols) == 0 % have not yet computed and added these
-
     % add in canlab spike detection (Mahalanobis distance)
     [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);
- 
-    % motion can create artifacts lasting longer. also flag the following 4
+    % add in canlab spike detection (Mahalanobis distance)
+    [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);        % motion can create artifacts lasting longer. also flag the following 4
     % TRs
-    if exist('spike_duration') == 1
-        nuisance_covs_with_timing_adjustment = nuisance_covs{1};
-        spikes = spikes{1};
-        [~, col] = find(nuisance_covs_with_timing_adjustment(2:39)>0);
-        for i = 1:length(spikes)
-            nuisance_covs_with_timing_adjustment(spikes(i):spikes(i)+spike_duration, col(i)+1) = 1;
-        end        
-        nuisance_covs_with_timing_adjustment(:,1) = []; %drop gtrim 
-        R = [R array2table(nuisance_covs_with_timing_adjustment(1:length(nuisance_covs{1}),:))];
-    else
-        % add in canlab spike detection (Mahalanobis distance)
-        [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);
-        % motion can create artifacts lasting longer. also flag the following 4
-        % TRs
-        nuisance_covs = nuisance_covs{1};
-        nuisance_covs(:,1) = []; %drop gtrim 
-        R = [R array2table(nuisance_covs)];
-
-        % find updated spike cols
-        spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
-    end
+    nuisance_covs = nuisance_covs{1};
+    nuisance_covs(:,1) = []; %drop gtrim 
+    R = [R array2table(nuisance_covs)];
     % find updated spike cols
     spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
 end
-
-
+    
 % make spike regs from dvars. we dont expect a reliable signal in the brain
 % that tracks dvars, so less sensible to include as a parametric regressor.
 % better to use to identify outliers
 dvarsZ = [ 0; zscore(R.dvars(2:end))]; % first element of dvars always = 0, drop it from zscoring and set it to Z=0
 dvars_spikes = find(dvarsZ > 3); % arbitrary cutoff -- Z > 2.5
-
-% motion can create artifacts lasting longer. also flag the following 4
-% TRs
-
     
 % make regs from spike indices
 dvars_spikes_regs = zeros(height(R),length(dvars_spikes));
@@ -112,6 +93,7 @@ for i=1:length(dvars_spikes)
     dvars_spikes_regs(dvars_spikes(i),i) = 1;
 end
 
+% make regs from spike indices
 % plot: compare dvars spikes to mahal spikes
 create_figure('spikes'); imagesc([sum(dvars_spikes_regs, 2) sum(R{:,spike_cols},2)])
 set(gca, 'XTick', 1:2,'XTickLabel', {'Dvars spikes', 'Mahal spikes'})%, 'Position', [600 400 450 550])
