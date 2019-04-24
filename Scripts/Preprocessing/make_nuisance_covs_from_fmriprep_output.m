@@ -72,7 +72,6 @@ if sum(spike_cols) == 0 % have not yet computed and added these
     % add in canlab spike detection (Mahalanobis distance)
     [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);
     % add in canlab spike detection (Mahalanobis distance)
-    [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);        % motion can create artifacts lasting longer. also flag the following 4
     % TRs
     nuisance_covs = nuisance_covs{1};
     nuisance_covs(:,1) = []; %drop gtrim 
@@ -91,6 +90,48 @@ dvars_spikes = find(dvarsZ > 3); % arbitrary cutoff -- Z > 2.5
 dvars_spikes_regs = zeros(height(R),length(dvars_spikes));
 for i=1:length(dvars_spikes)
     dvars_spikes_regs(dvars_spikes(i),i) = 1;
+end
+
+% motion can create artifacts lasting longer than the single image we
+% usually account for using spike id scripts. we're also going to flag the
+% following TRs, the number of which is defined by the user. If
+% 'spike_additional_vols' remains unspecified, everything will proceed as
+% it did before, meaning spikes will be identified and flagged in the
+% creation of nuisance regressors without considering the following TRs
+% Add them if user requested for nuisance_covs and dvars_spikes_regs
+if exist('spike_additional_vols')
+    
+    
+    % concatenate generated spike nuisance covs and also dvars regs. We
+    % would like to flag subsequent TR's with respect to both of these
+    % measures.
+    nuisance_covs_with_timing_adjustment = [nuisance_covs,dvars_spikes_regs];
+    spikes = [spikes{1};dvars_spikes];
+    nuisance_covs_additional_spikes = zeros(length(nuisance_covs),length(spikes)*spike_additional_vols);
+    
+    % This loop will create a separate column with ones in each row (TR) 
+    % we would like to consider a nuisance regressor
+    % Performs this function for dvars and spikes. From now on we'll
+    % consider the two as a single set of regressors
+    for i = 1:length(spikes) 
+        nuisance_covs_additional_spikes(spikes(i)+1:spikes(i)+spike_additional_vols,(i*4-3):(i*4)) = eye(spike_additional_vols);
+    end
+    
+    % Using the eye function like I did above means that there is some overlap in the TRs we're hoping to account for in the first level model
+    % We don't want that, so the following code identifies rows with
+    % redundant flags and will set them to zero. Then it removes columns
+    % that no longer contain flags.
+    [duplicate_rows, ~] = find(sum(nuisance_covs_additional_spikes, 2)>1); %The above loop will result in some overlap. We don't want one TR to be represented by multiple columns in the nuisance regressor matrix
+    for duplicates = 1:length(duplicate_rows) %This loop sets duplicate values to zero
+        [~,curr_cols] = find(nuisance_covs_additional_spikes(duplicate_rows(duplicates),:)==1);
+        first_instance = min(curr_cols);
+        nuisance_covs_additional_spikes(duplicate_rows(duplicates), first_instance+1:size(nuisance_covs_additional_spikes,2)) = 0;
+    end
+    nuisance_covs_additional_spikes = nuisance_covs_additional_spikes(1:length(nuisance_covs), any(nuisance_covs_additional_spikes));
+    
+    % Finally, add the additional spikes to the larger covariance matrix
+    R = [R array2table(nuisance_covs_additional_spikes)];
+    %dvars_spikes_regs 
 end
 
 % make regs from spike indices
