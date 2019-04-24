@@ -114,7 +114,7 @@ if exist('spike_additional_vols')
     % Performs this function for dvars and spikes. From now on we'll
     % consider the two as a single set of regressors
     for i = 1:length(spikes) 
-        nuisance_covs_additional_spikes(spikes(i)+1:spikes(i)+spike_additional_vols,(i*4-3):(i*4)) = eye(spike_additional_vols);
+        nuisance_covs_additional_spikes(spikes(i)+1:spikes(i)+spike_additional_vols,(i*spike_additional_vols-(spike_additional_vols-1)):(i*spike_additional_vols)) = eye(spike_additional_vols);
     end
     
     % Using the eye function like I did above means that there is some overlap in the TRs we're hoping to account for in the first level model
