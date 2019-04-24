@@ -134,7 +134,13 @@ if exist('spike_additional_vols')
         nuisance_covs_additional_spikes(spikes(i)+1 : spikes(i)+spike_additional_vols,(i*spike_additional_vols-(spike_additional_vols-1)):(i*spike_additional_vols)) = eye(spike_additional_vols);
     end
 
+         % if any spikes went beyond the end, trim it down
+        nuisance_covs_additional_spikes = nuisance_covs_additional_spikes(1:height(R),:);
+
     % Add the additional spikes to the larger covariance matrix
+    % if any already exist, drop them first
+    additional_spike_cols = contains(R.Properties.VariableNames,'nuisance_covs_additional_spikes'); 
+    if any(additional_spike_cols), R(:,additional_spike_cols) = []; end
     R = [R array2table(nuisance_covs_additional_spikes)];
 end
 
