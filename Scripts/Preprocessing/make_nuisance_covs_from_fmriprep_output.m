@@ -32,7 +32,7 @@ R = readtable(fmriprep_confounds_fname, 'TreatAsEmpty', 'n/a', 'filetype', 'text
 % replace NaNs in first row with Os
 wh_replace = ismissing(R(1,:));
 if any(wh_replace)
-    R{1, wh_replace} = zeros(1, sum(wh_replace)); 
+    R{1, wh_replace} = zeros(1, sum(wh_replace)); % make array of zeros of the right size
 end
 
 
@@ -44,31 +44,44 @@ mo_sq = motion .^ 2;
 mo_sq_diff = [zeros(1,6); diff(mo_sq)];
 motion18 = [diffs mo_sq mo_sq_diff];
 
+% make a table of the 18 additional ones
 mot_names18 = [cellfun( @(x) [x '_diff'], mot_names, 'UniformOutput',false) cellfun( @(x) [x '_sq'], mot_names, 'UniformOutput',false) cellfun( @(x) [x '_sq_diff'], mot_names, 'UniformOutput',false) ];
-
 motion18 = array2table(motion18, 'VariableNames', mot_names18);
-%head(motion18)
-    
+
 % remove previously saved motion cols 1) in case there was an error, and 2)
 % so i can re-add them without conflict
 R(:,contains(R.Properties.VariableNames, 'diff')) = [];
 R(:,contains(R.Properties.VariableNames, 'sq')) = [];
 
-% add them in
+% add them in (table join)
 R = [R motion18];
 
 
-% add spikes for initial volumes. can "redo" this if already exists; not a
-% problem
-nvols = round(5/TR);  % first 5 seconds
-R.initial_vols = zeros(height(R),1);
-R.initial_vols(1:nvols) = ones(nvols,1);
+% add spikes for initial volumes. drop any existing one first, i.e., if
+% user changes the number of initial vols to dr op
+R(:,contains(R.Properties.VariableNames, 'initial_vols')) = [];
+nvols = round(5/TR);  % add spikes for the first 5 seconds
+initial_vols = zeros(height(R), nvols);
+for i=1:nvols
+    initial_vols(i,i) = 1;
+end
+R = [R array2table(initial_vols)];
 
-% first remove any additional vols that are present    
-% find spike cols
+
+% before dealing w/ nuisance covs, drop any "additional spike regs". this
+% should be done anyway, and should be done at this point in the script to
+% address a bug in an earlier version that can still impact code if run on
+% older confounds files
+additional_spike_cols = contains(R.Properties.VariableNames,'nuisance_covs_additional_spikes'); 
+R(:,additional_spike_cols)=[];
+
+% has scn_session_spike_id already been run on this data? if so, results
+% will be saved back into the confounds file, with variables named
+% nuisance_covsXX
 spike_cols = contains(R.Properties.VariableNames,'nuisance_covs'); 
 
 if sum(spike_cols) == 0 % have not yet computed and added these
+    
     % add in canlab spike detection (Mahalanobis distance)
     [g, spikes, gtrim, nuisance_covs, snr] = scn_session_spike_id(raw_img_fname, 'doplot', 0);
     % add in canlab spike detection (Mahalanobis distance)
@@ -134,33 +147,31 @@ if exist('spike_additional_vols')
         nuisance_covs_additional_spikes(spikes(i)+1 : spikes(i)+spike_additional_vols,(i*spike_additional_vols-(spike_additional_vols-1)):(i*spike_additional_vols)) = eye(spike_additional_vols);
     end
 
-         % if any spikes went beyond the end, trim it down
-        nuisance_covs_additional_spikes = nuisance_covs_additional_spikes(1:height(R),:);
+    % if any spikes went beyond the end, trim it down
+    nuisance_covs_additional_spikes = nuisance_covs_additional_spikes(1:height(R),:);
 
     % Add the additional spikes to the larger covariance matrix
-    % if any already exist, drop them first
-    additional_spike_cols = contains(R.Properties.VariableNames,'nuisance_covs_additional_spikes'); 
-    if any(additional_spike_cols), R(:,additional_spike_cols) = []; end
+    % if any already exist in R, drop them first so can (re)add them
+    % without issue
+    additional_spike_cols = contains(R.Properties.VariableNames,'additional_spikes'); 
+    R(:,additional_spike_cols) = []; 
     R = [R array2table(nuisance_covs_additional_spikes)];
 end
 
 
-
-% this loop will remove redundant spike regressors
+% Now, remove redundant spike regressors
 regs = R.Properties.VariableNames;
 dvars_cols = contains(regs,'dvars_spikes'); 
 spike_cols = contains(regs,'nuisance_covs'); 
-additional_spike_cols = contains(regs,'nuisance_covs_additional_spikes'); 
+additional_spike_cols = contains(regs,'additional_spikes'); 
+initial_vols = contains(regs,'initial_vols'); 
 
-[duplicate_rows, ~] = find(sum(R{:, spike_cols | dvars_cols | additional_spike_cols}, 2)>1); %The above loop will result in some overlap. We don't want one TR to be represented by multiple columns in the nuisance regressor matrix
-for duplicates = 1:length(duplicate_rows) %This loop sets duplicate values to zero; drops them later -- keep indices the same
-    [~,curr_cols] = find(R{duplicate_rows(duplicates),:}==1);
-    first_instance = min(curr_cols);
-    R{duplicate_rows(duplicates), first_instance+1:size(R,2)} = 0;
+[duplicate_rows, ~] = find(sum(R{:, spike_cols | dvars_cols | additional_spike_cols | initial_vols}, 2)>1);
+for i = 1:length(duplicate_rows) %This loop sets duplicate values to zero; drops them later (to keep indices the same during the loop)
+    [~,curr_cols] = find(R{duplicate_rows(i),:}==1);
+    R{duplicate_rows(i), curr_cols(2:end)} = 0;
 end
 R = R(1:length(nuisance_covs), any(table2array(R)));
-
-
 
 % Select a subset of regressors to return for use in GLM to return to user
 regs = R.Properties.VariableNames;
@@ -169,12 +180,14 @@ spike_cols = contains(regs,'nuisance_covs');
 motion_cols = contains(regs,'rot') | contains(regs,'trans') | contains(regs,'diff'); 
 additional_spike_cols = contains(regs,'nuisance_covs_additional_spikes'); 
 
-n_spike_regs = sum(dvars_cols | spike_cols | additional_spike_cols)
-n_spike_regs_percent = n_spike_regs / height(R)
-
 Rselected = R(:,motion_cols | spike_cols | dvars_cols | additional_spike_cols);
 Rselected.framewise_displacement = R.framewise_displacement;
 Rselected.csf = R.csf;
+
+% compute and output how many spikes total
+n_spike_regs = sum(dvars_cols | spike_cols | additional_spike_cols)
+n_spike_regs_percent = n_spike_regs / height(R)
+
 
 % write back to file
 writetable(R, fmriprep_confounds_fname, 'filetype', 'text');
