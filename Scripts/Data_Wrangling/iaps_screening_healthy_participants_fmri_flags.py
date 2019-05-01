@@ -23,8 +23,8 @@ column_out=["participant_form_timestamp","participant_info_complete","name1","em
 def filter_function(df):
     return  (df['consent_to_contact1'] == 1 and
              df['iaps_screening'] == 1 and
-             df['have_you_had_depressive_ep'] == 1 and
-             df['did_you_receive_a_diagnosi'] == 1 and
+             df['have_you_had_depressive_ep'] == 0 and
+             df['did_you_receive_a_diagnosi'] == 0 and
              df['authorization___1'] == 1 and
              #df['painstudies'] == 1 and
              #df['pain_screening1___8'] != 1 and
