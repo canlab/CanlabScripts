@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#ENVIRONMENT
+
 #usage: ./WAVi_patient_screening.py <CSV filename>
 
 import numpy as np
@@ -8,19 +10,19 @@ import pandas as pd
 import sys, os
 
 #read first argument into pandas df from CSV file, set row index to 0 (REDCAP id)
-redcap_data = pd.read_csv(sys.argv[1], index_col = 0)
+rd = pd.read_csv(sys.argv[1], index_col = 0)
 
 #set list of column names from df
-column_list = redcap_data.columns.values.tolist()
+column_list = rd.columns.values.tolist()
 
-#cleaning
-#print(redcap_data.iloc[:1,0:2])
-#print(redcap_data.iloc[:,1])
-redcap_data.drop(['redcap_event_name','redcap_survey_identifier','eligibility_prescreening_timestamp'], axis=1)
-
-print(redcap_data)
+#CLEANING
 #remove bad rows
-#can't use complete, unresolved
+rd.drop(rd.columns[[0,1,2,48]], axis=1, inplace=True)
+
+#exclude for age
+rd_filtered = rd.query(
+'age_in_range==1'
+)
 
 #create exclusion flags
 
@@ -31,11 +33,12 @@ print(redcap_data)
 #patient
 #control
 
-#print results
+#print results to new csv sheet
 #name
 #patient/control
 #gender
 #age
 #email
 #phone
-#print(redcap_data)
+rd_filtered.to_csv('~/Documents/WAVi/rdprocessed.csv')
+print(rd)
