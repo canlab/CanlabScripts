@@ -13,7 +13,7 @@ import pandas as pd
 import sys, os
 
 #This is the list of column headers to output.
-column_out=["participant_form_timestamp","participant_info_complete","name1","sex1","email_address1","phone_number1","session_availability1","which_meds", "flags"]
+column_out=["participant_form_timestamp","participant_info_complete","name1","sex1","date_of_birth1","email_address1","phone_number1","session_availability1","which_meds", "flags"]
 
 #This is the function that defines the relevant lines to
 #print. It is a boolean function that takes one argument,
