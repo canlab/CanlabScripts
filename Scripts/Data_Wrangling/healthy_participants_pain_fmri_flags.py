@@ -13,7 +13,7 @@ import pandas as pd
 import sys, os
 
 #This is the list of column headers to output.
-column_out=["participant_form_timestamp","participant_info_complete","name1","email_address1","phone_number1","session_availability1","which_meds", "flags"]
+column_out=["participant_form_timestamp","participant_info_complete","name1","sex1","date_of_birth1","email_address1","phone_number1","session_availability1","which_meds", "flags"]
 
 #This is the function that defines the relevant lines to
 #print. It is a boolean function that takes one argument,
@@ -23,6 +23,7 @@ column_out=["participant_form_timestamp","participant_info_complete","name1","em
 def filter_function(df):
     return  (df['consent_to_contact1'] == 1 and
              df['authorization___1'] == 1 and
+             df['dominant_hand'] != 2 and
              df['painstudies'] == 1 and
              df['pain_screening1___8'] != 1 and
              df['pain_screening1___9'] != 1 and
