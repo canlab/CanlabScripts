@@ -58,5 +58,5 @@ rd_filtered.drop(rd_filtered.columns[[0,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,
 #age
 #email
 #phone
-rd_filtered.to_csv('~/Documents/WAVi/rdprocessed.csv')
+rd_filtered.to_csv('rdprocessed.csv')
 print(rd_filtered)
