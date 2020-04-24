@@ -62,13 +62,13 @@ allspikes = FD5_spikes | dvars_spikes;
 % add additional spike vols for vols following the spike. If
 % spike_additional_vols is zero, nothing happens, as desired.
 origspikes = find(allspikes);
-
-for i=1:spike_additional_vols
-    
-    if origspikes+i < length(allspikes) % dont make a spike past the end
-        allspikes(origspikes+i) = 1;
+for k=1:length(origspikes) % Iterate over spikes
+origspike_k = origspikes(k);
+    for i=1:spike_additional_vols % Iterate over additional vols
+        if origspike_k+i <= length(allspikes) % dont make a spike past the end
+            allspikes(origspike_k+i) = 1;
+        end
     end
-    
 end
 
 % make into 0/1 spike regressors
@@ -84,8 +84,8 @@ end
 nuis_matrix = [motion24 spikes_regs zscore(R.csf) zscore(R.global_signal)];
 
 % compute and output how many spikes total
-n_spike_regs = length(allspikes)
-n_spike_regs_percent = n_spike_regs / height(R)
+n_spike_regs = length(allspikes);
+n_spike_regs_percent = n_spike_regs / height(R);
 
 
 end
