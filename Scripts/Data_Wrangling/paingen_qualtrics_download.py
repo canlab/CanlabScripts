@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import requests
 import zipfile
@@ -9,11 +9,12 @@ import re
 
 # from https://api.qualtrics.com/docs/getting-survey-responses-via-the-new-export-apis
 
-def exportSurvey(apiToken, surveyId, dataCenter, fileFormat):
+def exportSurvey(apiToken, surveyId, dataCenter, fileFormat, savePath):
 
     surveyId = surveyId
     fileFormat = fileFormat
     dataCenter = dataCenter
+    savePath = savePath
 
     # setting static parameters
     requestCheckProgress = 0.0
@@ -51,7 +52,7 @@ def exportSurvey(apiToken, surveyId, dataCenter, fileFormat):
     requestDownload = requests.request("GET", requestDownloadUrl, headers=headers, stream=True)
 
     # step 4: unzipping the file
-    zipfile.ZipFile(io.BytesIO(requestDownload.content)).extractall("MyQualtricsDownload")
+    zipfile.ZipFile(io.BytesIO(requestDownload.content)).extractall(savePath+"MyQualtricsDownload")
     print('Complete')
 
 def main():
@@ -66,8 +67,9 @@ def main():
     try:
         surveyId = sys.argv[1]
         fileFormat = sys.argv[2]
+        savePath = sys.argv[3]
     except IndexError:
-        print ("usage: surveyId fileFormat")
+        print ("usage: ./script surveyId fileFormat savePath")
         sys.exit(2)
 
     if fileFormat not in ["csv", "tsv", "spss"]:
@@ -80,7 +82,7 @@ def main():
         print ("Survey Id must match ^SV_.*")
         sys.exit(2)
 
-    exportSurvey(apiToken, surveyId, dataCenter, fileFormat)
+    exportSurvey(apiToken, surveyId, dataCenter, fileFormat, savePath)
 
 if __name__== "__main__":
     main()
