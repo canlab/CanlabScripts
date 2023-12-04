@@ -55,13 +55,7 @@
 % 12/24/2021: Feng Zhou fixed a bug related to the calculation of FD,
 %             shift ndummies, fastTR, and DVARS based spikes to optional inputs, 
 %             and used std_dvars instead of zscore(dvars) to identify dvars based spikes
-% 12/04/2023: Byeol fixed a bug concerning the computation of head motion parameters. 
-%             Formerly, it only extracted the 6 base motion parameters from 
-%             fMRIPrep and incorrectly calculated the quadratic terms for 
-%             temporal derivatives. It previously computed the derivatives 
-%             of quadratic terms, but it should be the quadratic of derivatives. 
-%             The issue has been rectified, and the code now correctly extracts 
-%             all 24 head motion parameters from fMRIPrep outputs
+% 12/04/2023: Byeol fixed a bug concerning the computation of head motion parameters. Formerly, it only extracted the 6 base motion parameters from fMRIPrep and incorrectly calculated the quadratic terms for temporal derivatives. It previously computed the derivatives of quadratic terms, but it should be the quadratic of derivatives. The issue has been rectified, and the code now correctly extracts all 24 head motion parameters from fMRIPrep outputs
 
 function [nuis_matrix, n_spike_regs, n_spike_regs_percent, allspikes, fd] = make_nuisance_covs_from_fmriprep_output(fmriprep_confounds_fname, TR, FD_spike_cutoff, spike_additional_vols, varargin)
 
@@ -105,11 +99,11 @@ R = R(ndummies+1:end,:);
 % compute 24 motion regs
 mot_names = {'trans_x','trans_y','trans_z','rot_x','rot_y','rot_z'};
 motion = R{:,mot_names};
-% diffs = [zeros(1,6); diff(motion)];
-% mo_sq = motion .^ 2;
-% mo_sq_diff = [zeros(1,6); diff(mo_sq)];
-% motion24 = [motion diffs mo_sq mo_sq_diff];
-motion24 = R{:,contains(R.Properties.VariableNames, mot_names)}; % Byeol added
+diffs = [zeros(1,6); diff(motion)];
+mo_sq = motion .^ 2;
+mo_sq_diff = [zeros(1,6); diff(mo_sq)];
+motion24 = [motion diffs mo_sq mo_sq_diff];
+
 
 
 % --- DEFINE OUTLIERS / SPIKES --- %
