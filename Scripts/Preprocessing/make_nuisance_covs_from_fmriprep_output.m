@@ -62,6 +62,10 @@
 %             of quadratic terms, but it should be the quadratic of derivatives. 
 %             The issue has been rectified, and the code now correctly extracts 
 %             all 24 head motion parameters from fMRIPrep outputs
+% 12/02/2024: I edited the column names in the confounds TSV files to ensure 
+%             compatibility with the older version of fMRIPrep (specifically 
+%             the 2019 version), as the original code didn't work with those 
+%             column names. This update makes the code more versatile and broadly applicable.
 
 function [nuis_matrix, n_spike_regs, n_spike_regs_percent, allspikes, fd] = make_nuisance_covs_from_fmriprep_output(fmriprep_confounds_fname, TR, FD_spike_cutoff, spike_additional_vols, varargin)
 
@@ -98,18 +102,40 @@ end
 % disp('You have chosen the following options:');
 % gs, wm, csf, aCompCor, tCompCor, antpost
 
-R = readtable(fmriprep_confounds_fname, 'TreatAsEmpty', 'n/a', 'filetype', 'text');
+R = readtable(fmriprep_confounds_fname, 'TreatAsEmpty', 'n/a', 'filetype', 'text','VariableNamingRule','preserve');
 
 R = R(ndummies+1:end,:);
 
+% column name changes for older version of fMRIPrep that generated
+% different names of columns - Byeol added
+if ~any(contains(R.Properties.VariableNames,'csf')) 
+    R.Properties.VariableNames{ismember(R.Properties.VariableNames,'CSF')} = 'csf';
+    R.Properties.VariableNames{ismember(R.Properties.VariableNames,'GlobalSignal')} = 'global_signal';
+    R.Properties.VariableNames{ismember(R.Properties.VariableNames,'WhiteMatter')} = 'white_matter';
+    R.Properties.VariableNames{ismember(R.Properties.VariableNames,'stdDVARS')} = 'std_dvars';
+    R.Properties.VariableNames{ismember(R.Properties.VariableNames,'FramewiseDisplacement')} = 'framewise_displacement';
+end
+% Older version (in 2019): {'CSF','WhiteMatter','GlobalSignal','stdDVARS','FramewiseDisplacement','tCompCor','aCompCor','X','Y','Z','RotX','RotY','RotZ'}
+% Recent version: {'csf','white_matter','global_signal','std_dvars','t_comp_cor','a_comp_cor','trans_x','trans_y','trans_z','rot_x','rot_y','rot_z'}
+
 % compute 24 motion regs
 mot_names = {'trans_x','trans_y','trans_z','rot_x','rot_y','rot_z'};
-motion = R{:,mot_names};
-% diffs = [zeros(1,6); diff(motion)];
-% mo_sq = motion .^ 2;
-% mo_sq_diff = [zeros(1,6); diff(mo_sq)];
-% motion24 = [motion diffs mo_sq mo_sq_diff];
-motion24 = R{:,contains(R.Properties.VariableNames, mot_names)}; % Byeol added
+if any(contains(R.Properties.VariableNames, mot_names))   
+    motion = R{:,mot_names};
+else % for older version of fmriprep
+    mot_names = {'X','Y','Z','RotX','RotY','RotZ'};
+    motion = R{:,mot_names};
+end
+% Used fmriprep outputs
+if sum(contains(R.Properties.VariableNames, mot_names)) == 24
+    motion24 = R{:,contains(R.Properties.VariableNames, mot_names)}; % Byeol added
+else % manually calculated
+    diffs = [zeros(1,6); diff(motion)];
+    mo_sq = motion .^ 2;
+    mo_sq_diff = diffs .^ 2;
+    motion24 = [motion diffs mo_sq mo_sq_diff];
+end
+
 
 
 % --- DEFINE OUTLIERS / SPIKES --- %
@@ -120,8 +146,9 @@ motion(:,4:6) = (motion(:,4:6) / (2*pi)) * 100 * pi; % fraction of circle (radia
 if fast_TR % filter and compare to ~2sec prev rather than framewise
     fd = filtFD(motion, TR);
 else    
-    fd = sum(abs(diff(motion)),2);
-    fd = [0; fd];
+    % fd = sum(abs(diff(motion)),2);
+    % fd = [0; fd];
+    fd = R.framewise_displacement;
 end
 
 % define spikes based off FD
@@ -171,11 +198,11 @@ if gs, nuis_matrix = [nuis_matrix zscore(R.global_signal)]; end
 if csf, nuis_matrix = [nuis_matrix zscore(R.csf)]; end
 if wm, nuis_matrix = [nuis_matrix zscore(R.white_matter)]; end
 if aCompCor
-    whcol = ~cellfun(@isempty, strfind(R.Properties.VariableNames, 'a_comp_cor'));
+    whcol = contains(R.Properties.VariableNames,{'a_comp_cor','acompcor'},'IgnoreCase',true);
     nuis_matrix = [nuis_matrix zscore(R{:,whcol})]; 
 end
 if tCompCor
-    whcol = ~cellfun(@isempty, strfind(R.Properties.VariableNames, 't_comp_cor'));
+    whcol = contains(R.Properties.VariableNames,{'t_comp_cor','tcompcor'},'IgnoreCase',true);
     nuis_matrix = [nuis_matrix zscore(R{:,whcol})]; 
 end
     
